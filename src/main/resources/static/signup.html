@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account — VenueBook</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0a0a0f;
+            --cream: #f5f0e8;
+            --gold: #c9a84c;
+            --gold-light: #e8d5a3;
+            --muted: rgba(245,240,232,0.4);
+            --surface: #111118;
+            --border: rgba(201,168,76,0.18);
+            --border-dim: rgba(245,240,232,0.07);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { height: 100%; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--ink);
+            min-height: 100vh;
+            display: flex;
+            color: var(--cream);
+            cursor: none;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Cursor */
+        .cursor {
+            width: 10px; height: 10px;
+            background: var(--gold); border-radius: 50%;
+            position: fixed; pointer-events: none;
+            z-index: 9999; transition: transform 0.15s ease;
+            mix-blend-mode: difference;
+        }
+        .cursor-ring {
+            width: 36px; height: 36px;
+            border: 1px solid var(--gold); border-radius: 50%;
+            position: fixed; pointer-events: none;
+            z-index: 9998; transition: all 0.35s cubic-bezier(0.23,1,0.32,1);
+            opacity: 0.6;
+        }
+
+        /* ── LEFT: FORM PANEL ── */
+        .panel-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 4rem 6%;
+            position: relative;
+            z-index: 1;
+            background: var(--surface);
+            overflow-y: auto;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 2.5rem; left: 2.5rem;
+            display: flex; align-items: center; gap: 0.6rem;
+            font-size: 0.72rem; letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: rgba(245,240,232,0.3);
+            text-decoration: none; transition: color 0.3s;
+            cursor: none;
+        }
+        .back-link svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+        .back-link:hover { color: var(--gold); }
+
+        .form-wrap {
+            max-width: 480px;
+            width: 100%;
+            padding-top: 2rem;
+            opacity: 0;
+            animation: riseIn 0.9s cubic-bezier(0.16,1,0.3,1) 0.3s forwards;
+        }
+
+        .form-eyebrow {
+            display: flex; align-items: center; gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--gold); }
+        .form-eyebrow span {
+            font-size: 0.68rem; letter-spacing: 0.22em;
+            text-transform: uppercase; color: var(--gold);
+        }
+
+        .form-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.8rem; font-weight: 300;
+            color: var(--cream); line-height: 1.1;
+            margin-bottom: 0.5rem;
+        }
+        .form-title em { font-style: italic; }
+
+        .form-subtitle {
+            font-size: 0.82rem; color: var(--muted);
+            font-weight: 300; margin-bottom: 2.5rem;
+        }
+
+        /* Error */
+        .error-box {
+            display: flex; align-items: center; gap: 0.75rem;
+            background: rgba(220,60,60,0.08);
+            border: 1px solid rgba(220,60,60,0.2);
+            padding: 0.9rem 1.1rem; margin-bottom: 1.8rem;
+            font-size: 0.8rem; color: #f4a4a4; letter-spacing: 0.02em;
+        }
+        .error-box svg { width: 14px; height: 14px; stroke: #f4a4a4; fill: none; stroke-width: 1.5; flex-shrink: 0; }
+
+        /* Grid row */
+        .form-row {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Field */
+        .field { margin-bottom: 1.3rem; }
+        .field.span-2 { grid-column: 1 / -1; }
+
+        .field label {
+            display: block;
+            font-size: 0.68rem; letter-spacing: 0.18em;
+            text-transform: uppercase; color: var(--muted);
+            margin-bottom: 0.55rem;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: transparent;
+            border: 1px solid var(--border-dim);
+            color: var(--cream);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem; font-weight: 300;
+            transition: border-color 0.3s, background 0.3s;
+            outline: none; border-radius: 0;
+            -webkit-appearance: none;
+        }
+
+        .field input::placeholder { color: rgba(245,240,232,0.2); }
+
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--gold);
+            background: rgba(201,168,76,0.04);
+        }
+
+        /* Select arrow */
+        .select-wrap { position: relative; }
+        .select-wrap::after {
+            content: '';
+            position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+            width: 0; height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 5px solid rgba(201,168,76,0.5);
+            pointer-events: none;
+        }
+        .field select { padding-right: 2.5rem; cursor: none; }
+        .field select option { background: #111118; color: var(--cream); }
+
+        /* Password strength */
+        .strength-track {
+            margin-top: 0.5rem;
+            height: 2px;
+            background: var(--border-dim);
+            position: relative;
+            overflow: hidden;
+        }
+        .strength-bar {
+            height: 100%; width: 0;
+            transition: width 0.4s ease, background 0.4s ease;
+        }
+        .strength-label {
+            font-size: 0.68rem; letter-spacing: 0.12em;
+            text-transform: uppercase; margin-top: 0.4rem;
+            transition: color 0.3s;
+            min-height: 1em;
+        }
+
+        /* Terms */
+        .terms-row {
+            display: flex; align-items: flex-start; gap: 0.75rem;
+            margin-bottom: 1.8rem;
+            font-size: 0.78rem; color: var(--muted);
+            line-height: 1.6; font-weight: 300;
+        }
+        .terms-row input[type="checkbox"] {
+            appearance: none;
+            width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px;
+            border: 1px solid var(--border);
+            background: transparent; cursor: none;
+            position: relative; transition: all 0.3s;
+        }
+        .terms-row input[type="checkbox"]:checked {
+            background: var(--gold); border-color: var(--gold);
+        }
+        .terms-row input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute; left: 3px; top: 1px;
+            width: 6px; height: 9px;
+            border-right: 1.5px solid var(--ink);
+            border-bottom: 1.5px solid var(--ink);
+            transform: rotate(45deg);
+        }
+        .terms-row a { color: var(--gold); text-decoration: none; }
+        .terms-row a:hover { color: var(--gold-light); }
+
+        /* Submit */
+        .btn-submit {
+            width: 100%;
+            padding: 0.95rem;
+            background: var(--gold); border: 1px solid var(--gold);
+            color: var(--ink);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.78rem; font-weight: 500;
+            letter-spacing: 0.18em; text-transform: uppercase;
+            cursor: none; transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        .btn-submit::after {
+            content: ''; position: absolute; inset: 0;
+            background: rgba(255,255,255,0.1);
+            transform: translateX(-100%); transition: transform 0.4s ease;
+        }
+        .btn-submit:hover::after { transform: translateX(0); }
+        .btn-submit:hover { background: var(--gold-light); border-color: var(--gold-light); }
+
+        /* Login redirect */
+        .login-row {
+            text-align: center; margin-top: 1.8rem;
+            font-size: 0.8rem; color: var(--muted); font-weight: 300;
+        }
+        .login-row a {
+            color: var(--gold); text-decoration: none;
+            font-weight: 400; letter-spacing: 0.05em;
+            transition: color 0.3s; cursor: none;
+        }
+        .login-row a:hover { color: var(--gold-light); }
+
+        /* ── RIGHT: INFO PANEL ── */
+        .panel-right {
+            width: 38%;
+            flex-shrink: 0;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 4rem;
+            overflow: hidden;
+        }
+
+        .panel-right-bg {
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse at 50% 30%, rgba(201,168,76,0.1) 0%, transparent 55%),
+                radial-gradient(ellipse at 20% 80%, rgba(100,80,160,0.06) 0%, transparent 50%);
+        }
+        .panel-right-grid {
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* Left accent line */
+        .panel-right::before {
+            content: '';
+            position: absolute; left: 0; top: 10%; bottom: 10%;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+            opacity: 0.3;
+        }
+
+        /* SVG illustration */
+        .arch-illustration {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 0; opacity: 0;
+            animation: fadeIn 2s ease 1s forwards;
+        }
+        .arch-illustration svg { width: 75%; height: 75%; }
+
+        .panel-right-top { position: relative; z-index: 1; }
+        .panel-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem; letter-spacing: 0.12em;
+            color: var(--cream); text-decoration: none;
+            display: flex; align-items: center; gap: 0.55rem;
+        }
+        .panel-logo-mark {
+            width: 26px; height: 26px;
+            border: 1.5px solid var(--gold); border-radius: 3px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .panel-logo-mark svg { width: 13px; height: 13px; }
+        .panel-logo span { color: var(--gold); }
+
+        .panel-right-bottom { position: relative; z-index: 1; }
+
+        .panel-tagline {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2rem, 2.8vw, 3rem);
+            font-weight: 300; line-height: 1.15;
+            color: var(--cream); margin-bottom: 2.5rem;
+        }
+        .panel-tagline em { font-style: italic; color: var(--gold); }
+
+        /* Benefits list */
+        .benefits { list-style: none; display: flex; flex-direction: column; gap: 0; }
+        .benefits li {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 0.9rem 0;
+            border-bottom: 1px solid var(--border-dim);
+            font-size: 0.82rem; color: var(--muted);
+            font-weight: 300; transition: color 0.3s;
+        }
+        .benefits li:first-child { border-top: 1px solid var(--border-dim); }
+        .benefits li:hover { color: var(--cream); }
+
+        .benefit-icon {
+            width: 32px; height: 32px;
+            border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: border-color 0.3s;
+        }
+        .benefit-icon svg { width: 14px; height: 14px; stroke: var(--gold); fill: none; stroke-width: 1.5; }
+        .benefits li:hover .benefit-icon { border-color: var(--gold); }
+
+        /* Animations */
+        @keyframes riseIn {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            body { flex-direction: column-reverse; }
+            .panel-right { width: 100%; min-height: 240px; padding: 3rem 2rem 2.5rem; }
+            .panel-right::before { display: none; }
+            .panel-tagline { font-size: 1.8rem; }
+            .benefits { display: none; }
+            .panel-left { padding: 3rem 2rem 3rem; }
+            .form-wrap { max-width: 100%; padding-top: 3rem; }
+            .form-row { grid-template-columns: 1fr; }
+            .back-link { top: 1.5rem; left: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- LEFT: FORM -->
+<div class="panel-left">
+    <a th:href="@{/}" class="back-link">
+        <svg viewBox="0 0 16 16"><polyline points="10,3 5,8 10,13"/></svg>
+        Back to Home
+    </a>
+
+    <div class="form-wrap">
+        <div class="form-eyebrow"><span>New Member</span></div>
+        <h1 class="form-title">Create your<br><em>account.</em></h1>
+        <p class="form-subtitle">Fill in the details below to get started — it takes under a minute.</p>
+
+<!--        <div th:if="${error}" class="error-box">-->
+<!--            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11" r="0.5" fill="currentColor"/></svg>-->
+<!--            <span th:text="${error}">Something went wrong. Please try again.</span>-->
+<!--        </div>-->
+
+        <form th:action="@{/signup}" th:object="${user}" method="post">
+            <div class="form-row">
+                <div class="field">
+                    <label for="firstName">First Name</label>
+                    <input type="text" id="firstName" th:field="*{firstName}" placeholder="John" required>
+                </div>
+                <div class="field">
+                    <label for="lastName">Last Name</label>
+                    <input type="text" id="lastName" th:field="*{lastName}" placeholder="Doe" required>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" th:field="*{email}" placeholder="john.doe@institution.edu" required>
+            </div>
+
+            <div class="form-row">
+                <div class="field">
+                    <label for="department">Department</label>
+                    <div class="select-wrap">
+                        <select id="department" th:field="*{department}" required>
+                            <option value="">Select Department</option>
+                            <option value="CSE">CSE</option>
+                            <option value="ISE">ISE</option>
+                            <option value="ECE">ECE</option>
+                            <option value="EEE">EEE</option>
+                            <option value="AI&ML">AI&ML</option>
+                            <option value="AI&DS">AI&DS</option>
+                            <option value="MBA">MBA</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="semester">Year / Role</label>
+                    <div class="select-wrap">
+                        <select id="semester" th:field="*{semester}" required>
+                            <option value="">Select</option>
+                            <option value="1">1st</option>
+                            <option value="2">2nd</option>
+                            <option value="3">3rd</option>
+                            <option value="4">4th</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="password">Password</label>
+                <input type="password" id="password" th:field="*{password}" placeholder="Create a strong password" required>
+                <div class="strength-track"><div class="strength-bar" id="strengthBar"></div></div>
+                <div class="strength-label" id="strengthLabel"></div>
+            </div>
+
+            <div class="field">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Repeat your password" required>
+            </div>
+
+            <button type="submit" class="btn-submit">Create Account</button>
+
+            <p class="login-row">
+                Already have an account? <a th:href="@{/login}">Sign in instead</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+<!-- RIGHT: INFO PANEL -->
+<div class="panel-right">
+    <div class="panel-right-bg"></div>
+    <div class="panel-right-grid"></div>
+
+    <div class="arch-illustration">
+        <svg viewBox="0 0 400 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="60" y="60" width="280" height="380" stroke="rgba(201,168,76,0.1)" stroke-width="1"/>
+            <rect x="90" y="90" width="220" height="320" stroke="rgba(201,168,76,0.07)" stroke-width="1"/>
+            <rect x="110" y="110" width="180" height="70" stroke="rgba(201,168,76,0.18)" stroke-width="1"/>
+            <rect x="180" y="122" width="40" height="46" stroke="rgba(201,168,76,0.28)" stroke-width="1"/>
+            <line x1="95" y1="225" x2="305" y2="225" stroke="rgba(201,168,76,0.07)" stroke-width="1" stroke-dasharray="5 7"/>
+            <line x1="95" y1="260" x2="305" y2="260" stroke="rgba(201,168,76,0.07)" stroke-width="1" stroke-dasharray="5 7"/>
+            <line x1="95" y1="295" x2="305" y2="295" stroke="rgba(201,168,76,0.07)" stroke-width="1" stroke-dasharray="5 7"/>
+            <line x1="95" y1="330" x2="305" y2="330" stroke="rgba(201,168,76,0.07)" stroke-width="1" stroke-dasharray="5 7"/>
+            <line x1="95" y1="365" x2="305" y2="365" stroke="rgba(201,168,76,0.07)" stroke-width="1" stroke-dasharray="5 7"/>
+            <line x1="152" y1="195" x2="152" y2="405" stroke="rgba(201,168,76,0.05)" stroke-width="1"/>
+            <line x1="248" y1="195" x2="248" y2="405" stroke="rgba(201,168,76,0.05)" stroke-width="1"/>
+            <path d="M60 60 L60 85 M60 60 L85 60" stroke="rgba(201,168,76,0.45)" stroke-width="1.5"/>
+            <path d="M340 60 L340 85 M340 60 L315 60" stroke="rgba(201,168,76,0.45)" stroke-width="1.5"/>
+            <path d="M60 440 L60 415 M60 440 L85 440" stroke="rgba(201,168,76,0.45)" stroke-width="1.5"/>
+            <path d="M340 440 L340 415 M340 440 L315 440" stroke="rgba(201,168,76,0.45)" stroke-width="1.5"/>
+            <circle cx="200" cy="148" r="6" stroke="rgba(201,168,76,0.5)" stroke-width="1" fill="rgba(201,168,76,0.08)"/>
+            <circle cx="200" cy="148" r="18" stroke="rgba(201,168,76,0.18)" stroke-width="1"/>
+            <circle cx="200" cy="148" r="32" stroke="rgba(201,168,76,0.08)" stroke-width="1"/>
+        </svg>
+    </div>
+
+    <div class="panel-right-top">
+        <a href="/" class="panel-logo">
+            <div class="panel-logo-mark">
+                <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1" y="3" width="12" height="10" rx="1" stroke="#c9a84c" stroke-width="1.2"/>
+                    <path d="M1 6h12" stroke="#c9a84c" stroke-width="1.2"/>
+                    <path d="M4 1v4M10 1v4" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            Venue<span>Book</span>
+        </a>
+    </div>
+
+    <div class="panel-right-bottom">
+        <h2 class="panel-tagline">
+            Reserve with<br><em>confidence,</em><br>every time.
+        </h2>
+        <ul class="benefits">
+            <li>
+                <div class="benefit-icon">
+                    <svg viewBox="0 0 16 16"><polyline points="1,8 5,12 15,4"/></svg>
+                </div>
+                Instant booking confirmations
+            </li>
+            <li>
+                <div class="benefit-icon">
+                    <svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6h12"/><path d="M5 1v4M11 1v4"/></svg>
+                </div>
+                Calendar-based scheduling
+            </li>
+            <li>
+                <div class="benefit-icon">
+                    <svg viewBox="0 0 16 16"><path d="M8 14s6-3 6-7.5A6 6 0 0 0 2 6.5C2 11 8 14 8 14z"/><path d="M9.5 15a2 2 0 0 1-3 0"/></svg>
+                </div>
+                Email notifications & reminders
+            </li>
+            <li>
+                <div class="benefit-icon">
+                    <svg viewBox="0 0 16 16"><polyline points="1,12 5,7 9,9 15,4"/><line x1="1" y1="14" x2="15" y2="14"/></svg>
+                </div>
+                Full booking history & analytics
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    // Cursor
+    const cursor = document.getElementById('cursor');
+    const ring   = document.getElementById('cursorRing');
+    let mx=0,my=0,rx=0,ry=0;
+    document.addEventListener('mousemove', e => {
+        mx=e.clientX; my=e.clientY;
+        cursor.style.left=mx-5+'px'; cursor.style.top=my-5+'px';
+    });
+    const animateRing = () => {
+        rx+=(mx-rx-18)*0.12; ry+=(my-ry-18)*0.12;
+        ring.style.left=rx+'px'; ring.style.top=ry+'px';
+        requestAnimationFrame(animateRing);
+    };
+    animateRing();
+    document.querySelectorAll('a,button,input,select,label').forEach(el => {
+        el.addEventListener('mouseenter', () => { cursor.style.transform='scale(2.5)'; ring.style.transform='scale(1.4)'; ring.style.opacity='0.3'; });
+        el.addEventListener('mouseleave', () => { cursor.style.transform='scale(1)'; ring.style.transform='scale(1)'; ring.style.opacity='0.6'; });
+    });
+
+    // Password strength
+    const pwInput    = document.getElementById('password');
+    const strengthBar= document.getElementById('strengthBar');
+    const strengthLbl= document.getElementById('strengthLabel');
+
+    const levels = [
+        { label: 'Too short',  color: '#e05555', pct: '15%' },
+        { label: 'Weak',       color: '#e07d33', pct: '30%' },
+        { label: 'Fair',       color: '#d4a017', pct: '55%' },
+        { label: 'Good',       color: '#8fba4e', pct: '75%' },
+        { label: 'Strong',     color: '#4caf82', pct: '100%' },
+    ];
+
+    pwInput.addEventListener('input', function() {
+        const v = this.value;
+        if (!v) { strengthBar.style.width='0'; strengthLbl.textContent=''; return; }
+        let s = 0;
+        if (v.length >= 8) s++;
+        if (v.match(/[a-z]/)) s++;
+        if (v.match(/[A-Z]/)) s++;
+        if (v.match(/[0-9]/)) s++;
+        if (v.match(/[^a-zA-Z0-9]/)) s++;
+        const lvl = levels[Math.min(s-1, 4)];
+        strengthBar.style.width  = lvl.pct;
+        strengthBar.style.background = lvl.color;
+        strengthLbl.textContent  = lvl.label;
+        strengthLbl.style.color  = lvl.color;
+    });
+</script>
+</body>
+</html>

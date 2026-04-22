@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — VenueBook</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0a0a0f;
+            --cream: #f5f0e8;
+            --gold: #c9a84c;
+            --gold-light: #e8d5a3;
+            --muted: rgba(245,240,232,0.4);
+            --surface: #111118;
+            --border: rgba(201,168,76,0.18);
+            --border-dim: rgba(245,240,232,0.07);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--ink);
+            min-height: 100vh;
+            display: flex;
+            align-items: stretch;
+            color: var(--cream);
+            cursor: none;
+            overflow-x: hidden;
+        }
+
+        /* Noise */
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Cursor */
+        .cursor {
+            width: 10px; height: 10px;
+            background: var(--gold);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.15s ease;
+            mix-blend-mode: difference;
+        }
+        .cursor-ring {
+            width: 36px; height: 36px;
+            border: 1px solid var(--gold);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transition: all 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+            opacity: 0.6;
+        }
+
+        /* ── LEFT PANEL ── */
+        .panel-left {
+            width: 45%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 4rem;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        /* Architectural background */
+        .panel-left-bg {
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse at 40% 35%, rgba(201,168,76,0.1) 0%, transparent 55%),
+                radial-gradient(ellipse at 70% 75%, rgba(100,80,160,0.06) 0%, transparent 50%);
+            z-index: 0;
+        }
+
+        .panel-left-grid {
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+        }
+
+        /* Vertical accent line */
+        .panel-left::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 10%; bottom: 10%;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+            opacity: 0.3;
+        }
+
+        /* SVG illustration */
+        .arch-illustration {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 0;
+            opacity: 0;
+            animation: fadeIn 2s ease 0.8s forwards;
+        }
+
+        .arch-illustration svg { width: 80%; height: 80%; }
+
+        .panel-left-top {
+            position: relative; z-index: 1;
+        }
+
+        .panel-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 0.12em;
+            color: var(--cream);
+            text-decoration: none;
+            display: flex; align-items: center; gap: 0.55rem;
+        }
+
+        .panel-logo-mark {
+            width: 26px; height: 26px;
+            border: 1.5px solid var(--gold);
+            border-radius: 3px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .panel-logo-mark svg { width: 13px; height: 13px; }
+        .panel-logo span { color: var(--gold); }
+
+        .panel-left-bottom {
+            position: relative; z-index: 1;
+        }
+
+        .panel-tagline {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2.2rem, 3vw, 3.2rem);
+            font-weight: 300;
+            line-height: 1.15;
+            color: var(--cream);
+            margin-bottom: 2rem;
+        }
+
+        .panel-tagline em { font-style: italic; color: var(--gold); }
+
+        .panel-features {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .panel-features li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem 0;
+            border-bottom: 1px solid var(--border-dim);
+            font-size: 0.82rem;
+            color: var(--muted);
+            font-weight: 300;
+            letter-spacing: 0.02em;
+            transition: color 0.3s;
+        }
+
+        .panel-features li:first-child { border-top: 1px solid var(--border-dim); }
+        .panel-features li:hover { color: var(--cream); }
+
+        .feat-check {
+            width: 20px; height: 20px;
+            border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .feat-check svg {
+            width: 10px; height: 10px;
+            stroke: var(--gold);
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* ── RIGHT PANEL ── */
+        .panel-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 4rem 6%;
+            position: relative;
+            z-index: 1;
+            background: var(--surface);
+        }
+
+        .back-link {
+            position: absolute;
+            top: 2.5rem; left: 2.5rem;
+            display: flex; align-items: center; gap: 0.6rem;
+            font-size: 0.72rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: rgba(245,240,232,0.3);
+            text-decoration: none;
+            transition: color 0.3s;
+            cursor: none;
+        }
+
+        .back-link:hover { color: var(--gold); }
+
+        .back-link svg {
+            width: 14px; height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .form-wrap {
+            max-width: 400px;
+            width: 100%;
+            opacity: 0;
+            animation: riseIn 0.9s cubic-bezier(0.16,1,0.3,1) 0.3s forwards;
+        }
+
+        .form-eyebrow {
+            display: flex; align-items: center; gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-eyebrow::before {
+            content: '';
+            width: 24px; height: 1px;
+            background: var(--gold);
+        }
+
+        .form-eyebrow span {
+            font-size: 0.68rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+
+        .form-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.8rem;
+            font-weight: 300;
+            color: var(--cream);
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-title em { font-style: italic; }
+
+        .form-subtitle {
+            font-size: 0.82rem;
+            color: var(--muted);
+            font-weight: 300;
+            margin-bottom: 2.5rem;
+        }
+
+        /* Error */
+        .error-box {
+            display: flex; align-items: center; gap: 0.75rem;
+            background: rgba(220, 60, 60, 0.08);
+            border: 1px solid rgba(220,60,60,0.2);
+            padding: 0.9rem 1.1rem;
+            margin-bottom: 1.8rem;
+            font-size: 0.8rem;
+            color: #f4a4a4;
+            letter-spacing: 0.02em;
+        }
+
+        .error-box svg {
+            width: 14px; height: 14px;
+            stroke: #f4a4a4; fill: none;
+            stroke-width: 1.5; flex-shrink: 0;
+        }
+
+        /* Form fields */
+        .field {
+            margin-bottom: 1.4rem;
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.68rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.6rem;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            background: transparent;
+            border: 1px solid var(--border-dim);
+            color: var(--cream);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 300;
+            transition: border-color 0.3s, background 0.3s;
+            outline: none;
+            border-radius: 0;
+            -webkit-appearance: none;
+        }
+
+        .field input::placeholder { color: rgba(245,240,232,0.2); }
+
+        .field input:focus {
+            border-color: var(--gold);
+            background: rgba(201,168,76,0.04);
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .remember {
+            display: flex; align-items: center; gap: 0.6rem;
+            font-size: 0.75rem;
+            color: var(--muted);
+            cursor: none;
+        }
+
+        /* Custom checkbox */
+        .remember input[type="checkbox"] {
+            appearance: none;
+            width: 14px; height: 14px;
+            border: 1px solid var(--border);
+            background: transparent;
+            cursor: none;
+            position: relative;
+            flex-shrink: 0;
+            transition: border-color 0.3s;
+        }
+
+        .remember input[type="checkbox"]:checked {
+            background: var(--gold);
+            border-color: var(--gold);
+        }
+
+        .remember input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            left: 3px; top: 1px;
+            width: 6px; height: 9px;
+            border-right: 1.5px solid var(--ink);
+            border-bottom: 1.5px solid var(--ink);
+            transform: rotate(45deg);
+        }
+
+        .forgot-link {
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(245,240,232,0.3);
+            text-decoration: none;
+            transition: color 0.3s;
+            cursor: none;
+        }
+
+        .forgot-link:hover { color: var(--gold); }
+
+        /* Submit button */
+        .btn-submit {
+            width: 100%;
+            padding: 0.95rem;
+            background: var(--gold);
+            border: 1px solid var(--gold);
+            color: var(--ink);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 500;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            cursor: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-submit::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.1);
+            transform: translateX(-100%);
+            transition: transform 0.4s ease;
+        }
+
+        .btn-submit:hover::after { transform: translateX(0); }
+        .btn-submit:hover { background: var(--gold-light); border-color: var(--gold-light); }
+
+        /* Divider */
+        .divider {
+            display: flex; align-items: center;
+            margin: 2rem 0;
+            gap: 1rem;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-dim);
+        }
+
+        .divider span {
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: rgba(245,240,232,0.2);
+        }
+
+        /* Sign up row */
+        .signup-row {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-weight: 300;
+        }
+
+        .signup-row a {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            transition: color 0.3s;
+            cursor: none;
+        }
+
+        .signup-row a:hover { color: var(--gold-light); }
+
+        /* Animations */
+        @keyframes riseIn {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 860px) {
+            body { flex-direction: column; }
+            .panel-left { width: 100%; min-height: 260px; padding: 3rem 2rem 2.5rem; }
+            .panel-left::after { display: none; }
+            .panel-tagline { font-size: 1.9rem; }
+            .panel-features { display: none; }
+            .panel-right { padding: 3rem 2rem; }
+            .form-wrap { max-width: 100%; }
+            .back-link { top: 1.5rem; left: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- LEFT PANEL -->
+<div class="panel-left">
+    <div class="panel-left-bg"></div>
+    <div class="panel-left-grid"></div>
+
+    <!-- Architectural SVG -->
+    <div class="arch-illustration">
+        <svg viewBox="0 0 400 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Outer frame -->
+            <rect x="60" y="60" width="280" height="380" stroke="rgba(201,168,76,0.1)" stroke-width="1"/>
+            <!-- Inner room -->
+            <rect x="90" y="90" width="220" height="320" stroke="rgba(201,168,76,0.08)" stroke-width="1"/>
+            <!-- Stage area -->
+            <rect x="110" y="110" width="180" height="70" stroke="rgba(201,168,76,0.2)" stroke-width="1"/>
+            <!-- Podium -->
+            <rect x="185" y="125" width="30" height="40" stroke="rgba(201,168,76,0.3)" stroke-width="1"/>
+            <!-- Seating rows -->
+            <line x1="95" y1="220" x2="305" y2="220" stroke="rgba(201,168,76,0.07)" stroke-width="1" stroke-dasharray="5 7"/>
+            <line x1="95" y1="255" x2="305" y2="255" stroke="rgba(201,168,76,0.07)" stroke-width="1" stroke-dasharray="5 7"/>
+            <line x1="95" y1="290" x2="305" y2="290" stroke="rgba(201,168,76,0.07)" stroke-width="1" stroke-dasharray="5 7"/>
+            <line x1="95" y1="325" x2="305" y2="325" stroke="rgba(201,168,76,0.07)" stroke-width="1" stroke-dasharray="5 7"/>
+            <line x1="95" y1="360" x2="305" y2="360" stroke="rgba(201,168,76,0.07)" stroke-width="1" stroke-dasharray="5 7"/>
+            <!-- Aisles -->
+            <line x1="155" y1="195" x2="155" y2="400" stroke="rgba(201,168,76,0.05)" stroke-width="1"/>
+            <line x1="245" y1="195" x2="245" y2="400" stroke="rgba(201,168,76,0.05)" stroke-width="1"/>
+            <!-- Corner marks -->
+            <path d="M60 60 L60 85 M60 60 L85 60" stroke="rgba(201,168,76,0.5)" stroke-width="1.5"/>
+            <path d="M340 60 L340 85 M340 60 L315 60" stroke="rgba(201,168,76,0.5)" stroke-width="1.5"/>
+            <path d="M60 440 L60 415 M60 440 L85 440" stroke="rgba(201,168,76,0.5)" stroke-width="1.5"/>
+            <path d="M340 440 L340 415 M340 440 L315 440" stroke="rgba(201,168,76,0.5)" stroke-width="1.5"/>
+            <!-- Centre pulse -->
+            <circle cx="200" cy="148" r="6" stroke="rgba(201,168,76,0.5)" stroke-width="1" fill="rgba(201,168,76,0.08)"/>
+            <circle cx="200" cy="148" r="16" stroke="rgba(201,168,76,0.2)" stroke-width="1"/>
+        </svg>
+    </div>
+
+    <div class="panel-left-top">
+        <a href="/" class="panel-logo">
+            <div class="panel-logo-mark">
+                <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1" y="3" width="12" height="10" rx="1" stroke="#c9a84c" stroke-width="1.2"/>
+                    <path d="M1 6h12" stroke="#c9a84c" stroke-width="1.2"/>
+                    <path d="M4 1v4M10 1v4" stroke="#c9a84c" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            Venue<span>Book</span>
+        </a>
+    </div>
+
+    <div class="panel-left-bottom">
+        <h2 class="panel-tagline">
+            Your venues,<br><em>always</em><br>in order.
+        </h2>
+        <ul class="panel-features">
+            <li>
+                <div class="feat-check">
+                    <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                </div>
+                Real-time venue availability
+            </li>
+            <li>
+                <div class="feat-check">
+                    <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                </div>
+                Manage existing bookings
+            </li>
+            <li>
+                <div class="feat-check">
+                    <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                </div>
+                Instant booking confirmation
+            </li>
+            <li>
+                <div class="feat-check">
+                    <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+                </div>
+                Full booking history access
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="panel-right">
+    <a th:href="@{/}" class="back-link">
+        <svg viewBox="0 0 16 16"><polyline points="10,3 5,8 10,13"/></svg>
+        Back to Home
+    </a>
+
+    <div class="form-wrap">
+        <div class="form-eyebrow">
+            <span>Member Access</span>
+        </div>
+        <h1 class="form-title">Welcome<br><em>back.</em></h1>
+        <p class="form-subtitle">Enter your credentials to access your dashboard.</p>
+
+        <div th:if="${error}" class="error-box">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11" r="0.5" fill="currentColor"/></svg>
+            Invalid username or password. Please try again.
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="field">
+                <label for="username">Email or Username</label>
+                <input type="text" id="username" name="username" placeholder="you@institution.edu" required>
+            </div>
+
+            <div class="field">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="••••••••••" required>
+            </div>
+
+            <div class="form-options">
+                <label class="remember">
+                    <input type="checkbox" name="remember-me">
+                    Keep me signed in
+                </label>
+                <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn-submit">Sign In</button>
+        </form>
+
+        <div class="divider"><span>or</span></div>
+
+        <p class="signup-row">
+            No account yet? <a th:href="@{/signup}">Create one — it's free</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    const cursor = document.getElementById('cursor');
+    const ring   = document.getElementById('cursorRing');
+    let mx=0,my=0,rx=0,ry=0;
+
+    document.addEventListener('mousemove', e => {
+        mx = e.clientX; my = e.clientY;
+        cursor.style.left = mx-5+'px';
+        cursor.style.top  = my-5+'px';
+    });
+
+    const animateRing = () => {
+        rx += (mx-rx-18)*0.12;
+        ry += (my-ry-18)*0.12;
+        ring.style.left = rx+'px';
+        ring.style.top  = ry+'px';
+        requestAnimationFrame(animateRing);
+    };
+    animateRing();
+
+    document.querySelectorAll('a,button,input,label').forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            cursor.style.transform = 'scale(2.5)';
+            ring.style.transform = 'scale(1.4)';
+            ring.style.opacity = '0.3';
+        });
+        el.addEventListener('mouseleave', () => {
+            cursor.style.transform = 'scale(1)';
+            ring.style.transform = 'scale(1)';
+            ring.style.opacity = '0.6';
+        });
+    });
+</script>
+</body>
+</html>
