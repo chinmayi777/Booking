@@ -51,6 +51,6 @@ public class BookingController {
         
         bookingRepository.save(booking);
 
-        return "redirect:/dashboard";
+        return "redirect:/dashboard?success=true";
     }
 }

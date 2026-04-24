@@ -12,4 +12,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findUpcomingBookings();
     
     long countByVenueType(String venueType);
+    
+    List<Booking> findByUser(User user);
 }

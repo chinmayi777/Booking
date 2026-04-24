@@ -45,6 +45,59 @@ public class DashboardController {
         
         model.addAttribute("ongoingEvents", todayBookings);
         
+        List<Booking> myBookings = bookingRepository.findByUser(user);
+        model.addAttribute("myBookings", myBookings);
+        
+        // Prepare bookings JSON for calendar
+        List<Booking> allBookings = bookingRepository.findAll();
+        java.util.Map<String, List<java.util.Map<String, Object>>> bookingsMap = new java.util.HashMap<>();
+        for (Booking b : allBookings) {
+            if (b.getBookingDate() == null) continue;
+            String date = b.getBookingDate().toString();
+            bookingsMap.putIfAbsent(date, new java.util.ArrayList<>());
+            
+            java.util.Map<String, Object> dto = new java.util.HashMap<>();
+            dto.put("eventName", b.getEventName());
+            dto.put("venueType", b.getVenueType());
+            dto.put("department", b.getDepartment());
+            dto.put("personName", b.getPersonName());
+            dto.put("startTime", b.getStartTime() != null ? b.getStartTime().toString() : "");
+            dto.put("endTime", b.getEndTime() != null ? b.getEndTime().toString() : "");
+            
+            bookingsMap.get(date).add(dto);
+        }
+        
+        StringBuilder jsonBuilder = new StringBuilder("{");
+        boolean firstDate = true;
+        for (java.util.Map.Entry<String, List<java.util.Map<String, Object>>> entry : bookingsMap.entrySet()) {
+            if (!firstDate) jsonBuilder.append(",");
+            jsonBuilder.append("\"").append(entry.getKey()).append("\":[");
+            
+            boolean firstBooking = true;
+            for (java.util.Map<String, Object> b : entry.getValue()) {
+                if (!firstBooking) jsonBuilder.append(",");
+                jsonBuilder.append("{")
+                           .append("\"eventName\":\"").append(escapeJson((String)b.get("eventName"))).append("\",")
+                           .append("\"venueType\":\"").append(b.get("venueType")).append("\",")
+                           .append("\"department\":\"").append(b.get("department")).append("\",")
+                           .append("\"personName\":\"").append(escapeJson((String)b.get("personName"))).append("\",")
+                           .append("\"startTime\":\"").append(b.get("startTime")).append("\",")
+                           .append("\"endTime\":\"").append(b.get("endTime")).append("\"")
+                           .append("}");
+                firstBooking = false;
+            }
+            jsonBuilder.append("]");
+            firstDate = false;
+        }
+        jsonBuilder.append("}");
+        
+        model.addAttribute("bookingsJson", jsonBuilder.toString());
+        
         return "dashboard";
+    }
+    
+    private String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }
