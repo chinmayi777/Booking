@@ -17,7 +17,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // Disabled for simplicity in hackathon, enable in prod
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/signup", "/forgot-password", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/", "/login", "/signup", "/forgot-password", "/error", "/css/**", "/js/**", "/images/**").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
