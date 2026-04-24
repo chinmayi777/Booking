@@ -386,33 +386,33 @@
         <h1 class="form-title">Create your<br><em>account.</em></h1>
         <p class="form-subtitle">Fill in the details below to get started — it takes under a minute.</p>
 
-<!--        <div th:if="${error}" class="error-box">-->
-<!--            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11" r="0.5" fill="currentColor"/></svg>-->
-<!--            <span th:text="${error}">Something went wrong. Please try again.</span>-->
-<!--        </div>-->
+        <div th:if="${error}" class="error-box">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11" r="0.5" fill="currentColor"/></svg>
+            <span th:text="${error}">Something went wrong. Please try again.</span>
+        </div>
 
-        <form th:action="@{/signup}" th:object="${user}" method="post">
+        <form action="/signup" method="post">
             <div class="form-row">
                 <div class="field">
                     <label for="firstName">First Name</label>
-                    <input type="text" id="firstName" th:field="*{firstName}" placeholder="John" required>
+                    <input type="text" id="firstName" name="firstName" placeholder="John" required>
                 </div>
                 <div class="field">
                     <label for="lastName">Last Name</label>
-                    <input type="text" id="lastName" th:field="*{lastName}" placeholder="Doe" required>
+                    <input type="text" id="lastName" name="lastName" placeholder="Doe" required>
                 </div>
             </div>
 
             <div class="field">
                 <label for="email">Email Address</label>
-                <input type="email" id="email" th:field="*{email}" placeholder="john.doe@institution.edu" required>
+                <input type="email" id="email" name="email" placeholder="john.doe@institution.edu" required>
             </div>
 
             <div class="form-row">
                 <div class="field">
                     <label for="department">Department</label>
                     <div class="select-wrap">
-                        <select id="department" th:field="*{department}" required>
+                        <select id="department" name="department" required>
                             <option value="">Select Department</option>
                             <option value="CSE">CSE</option>
                             <option value="ISE">ISE</option>
@@ -428,7 +428,7 @@
                 <div class="field">
                     <label for="semester">Year / Role</label>
                     <div class="select-wrap">
-                        <select id="semester" th:field="*{semester}" required>
+                        <select id="semester" name="semester" required>
                             <option value="">Select</option>
                             <option value="1">1st</option>
                             <option value="2">2nd</option>
@@ -441,7 +441,7 @@
 
             <div class="field">
                 <label for="password">Password</label>
-                <input type="password" id="password" th:field="*{password}" placeholder="Create a strong password" required>
+                <input type="password" id="password" name="password" placeholder="Create a strong password" required>
                 <div class="strength-track"><div class="strength-bar" id="strengthBar"></div></div>
                 <div class="strength-label" id="strengthLabel"></div>
             </div>

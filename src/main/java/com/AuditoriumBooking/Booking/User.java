@@ -2,102 +2,46 @@ package com.AuditoriumBooking.Booking;
 
 import jakarta.persistence.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "users")
 public class User {
     @Id
-    @SequenceGenerator(
-            name = "user_sequence",
-            sequenceName = "user_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "user_sequence"
-    )
-    private long id;
-    private String eventName;
-    private String name;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    private String firstName;
+    private String lastName;
+    
+    @Column(unique = true)
+    private String email; 
+    
     private String department;
-    private Integer sem;
-    private LocalDateTime startsAt;
-    private LocalDateTime endsAt;
+    private String semester;
+    private String password;
 
+    public User() {}
 
-
-    public User(String eventName, String name, String department, int sem, LocalDateTime startsAt, LocalDateTime endsAt) {
-        this.eventName = eventName;
-        this.name = name;
+    public User(String firstName, String lastName, String email, String department, String semester, String password) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
         this.department = department;
-        this.sem = sem;
-        this.startsAt = startsAt;
-        this.endsAt = endsAt;
+        this.semester = semester;
+        this.password = password;
     }
 
-
-    public User(long id, String eventName, String name, String department, int sem, LocalDateTime startsAt, LocalDateTime endsAt) {
-        this.id = id;
-        this.eventName = eventName;
-        this.name = name;
-        this.department = department;
-        this.sem = sem;
-        this.startsAt = startsAt;
-        this.endsAt = endsAt;
-    }
-
-
-    public User(){
-    }
-
-    public String getEventName() {
-        return eventName;
-    }
-
-    public void setEventName(String eventName) {
-        this.eventName = eventName;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDepartment() {
-        return department;
-    }
-
-    public void setDepartment(String department) {
-        this.department = department;
-    }
-
-    public int getSem() {
-        return sem;
-    }
-
-    public void setSem(int sem) {
-        this.sem = sem;
-    }
-
-    public LocalDateTime getStartsAt() {
-        return startsAt;
-    }
-
-    public void setStartsAt(LocalDateTime startsAt) {
-        this.startsAt = startsAt;
-    }
-
-    public LocalDateTime getEndsAt() {
-        return endsAt;
-    }
-
-    public void setEndsAt(LocalDateTime endsAt) {
-        this.endsAt = endsAt;
-    }
-
-
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
+    public String getSemester() { return semester; }
+    public void setSemester(String semester) { this.semester = semester; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }
