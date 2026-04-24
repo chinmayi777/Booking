@@ -57,4 +57,34 @@ public class AuthController {
 
         return "redirect:/login";
     }
+
+    @GetMapping("/forgot-password")
+    public String showForgotPasswordForm() {
+        return "forgot-password";
+    }
+
+    @PostMapping("/forgot-password")
+    public String processForgotPassword(
+            @RequestParam String email,
+            @RequestParam String newPassword,
+            @RequestParam String confirmPassword,
+            Model model) {
+
+        if (!newPassword.equals(confirmPassword)) {
+            model.addAttribute("error", "Passwords do not match.");
+            return "forgot-password";
+        }
+
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            model.addAttribute("error", "No account found with that email address.");
+            return "forgot-password";
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        model.addAttribute("success", "Password successfully reset. Please log in.");
+        return "login";
+    }
 }
