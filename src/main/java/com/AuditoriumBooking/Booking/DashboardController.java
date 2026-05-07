@@ -6,6 +6,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -95,7 +97,26 @@ public class DashboardController {
         
         return "dashboard";
     }
-    
+
+    @PostMapping("/profile/update")
+    public String updateProfile(
+            @RequestParam String firstName,
+            @RequestParam String lastName,
+            @RequestParam String department,
+            @RequestParam String semester) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user != null) {
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
+            user.setDepartment(department);
+            user.setSemester(semester);
+            userRepository.save(user);
+        }
+        return "redirect:/dashboard?profileUpdated=true";
+    }
+
     private String escapeJson(String s) {
         if (s == null) return "";
         return s.replace("\\", "\\\\").replace("\"", "\\\"");
