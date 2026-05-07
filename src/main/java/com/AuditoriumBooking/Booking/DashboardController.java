@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Controller
@@ -19,7 +18,7 @@ public class DashboardController {
     private UserRepository userRepository;
 
     @Autowired
-    private BookingRepository bookingRepository;
+    private BookingService bookingService;
 
     @GetMapping("/dashboard")
     public String showDashboard(Model model) {
@@ -33,25 +32,25 @@ public class DashboardController {
         
         model.addAttribute("user", user);
         
-        long auditoriumCount = bookingRepository.countByVenueType("AUDITORIUM");
-        long seminarCount = bookingRepository.countByVenueType("SEMINAR_HALL");
+        long auditoriumCount = bookingService.countAuditoriums();
+        long seminarCount = bookingService.countSeminarHalls();
         
-        List<Booking> upcomingBookings = bookingRepository.findUpcomingBookings();
+        List<Booking> upcomingBookings = bookingService.getUpcomingBookings();
         model.addAttribute("auditoriumCount", auditoriumCount);
         model.addAttribute("seminarCount", seminarCount);
         
         // Simple logic for ongoing/upcoming (can be refined based on exact time)
-        List<Booking> todayBookings = bookingRepository.findByBookingDate(LocalDate.now());
+        List<Booking> todayBookings = bookingService.getTodayBookings();
         model.addAttribute("ongoingCount", todayBookings.size());
         model.addAttribute("upcomingCount", upcomingBookings.size());
         
         model.addAttribute("ongoingEvents", todayBookings);
         
-        List<Booking> myBookings = bookingRepository.findByUser(user);
+        List<Booking> myBookings = bookingService.getBookingsByUser(user);
         model.addAttribute("myBookings", myBookings);
         
         // Prepare bookings JSON for calendar
-        List<Booking> allBookings = bookingRepository.findAll();
+        List<Booking> allBookings = bookingService.getAllBookings();
         java.util.Map<String, List<java.util.Map<String, Object>>> bookingsMap = new java.util.HashMap<>();
         for (Booking b : allBookings) {
             if (b.getBookingDate() == null) continue;

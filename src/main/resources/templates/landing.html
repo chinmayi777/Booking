@@ -293,17 +293,12 @@
             opacity: 0;
         }
 
-        .stat-card:nth-child(1) {
-            top: 25%; left: 8%;
-            animation: floatIn 1s cubic-bezier(0.16, 1, 0.3, 1) 1.4s forwards;
-        }
-
-        .stat-card:nth-child(2) {
+        .stat-card:nth-of-type(1) {
             bottom: 28%; right: 8%;
             animation: floatIn 1s cubic-bezier(0.16, 1, 0.3, 1) 1.6s forwards;
         }
 
-        .stat-card:nth-child(3) {
+        .stat-card:nth-of-type(2) {
             top: 55%; left: 20%;
             animation: floatIn 1s cubic-bezier(0.16, 1, 0.3, 1) 1.8s forwards;
         }
@@ -842,10 +837,7 @@
         </div>
 
         <!-- Stat cards -->
-        <div class="stat-card">
-            <div class="stat-num">98%</div>
-            <div class="stat-label">Booking Accuracy</div>
-        </div>
+
         <div class="stat-card">
             <div class="stat-num">0</div>
             <div class="stat-label">Scheduling Conflicts</div>
